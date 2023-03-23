@@ -42,7 +42,7 @@ class Solution {
         }
         
         // 현재 노드 방문 처리 clear
-        visited[index] = false;
+        // visited[index] = false;
     }
     
     // source에서 target으로의 변환이 가능한지 여부를 확인
