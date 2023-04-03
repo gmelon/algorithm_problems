@@ -42,7 +42,7 @@ class Solution {
         for (int i = 1 ; i < n + 1 ; i++) {
             boolean flag = true;
             for (int j = 1 ; j < n + 1; j++) {
-                if (graph[i][j] == (int) 1e9) {
+                if (graph[i][j] == (int) 1e9 || graph[j][i] == (int) 1e9) {
                     flag = false;
                     break;
                 }
