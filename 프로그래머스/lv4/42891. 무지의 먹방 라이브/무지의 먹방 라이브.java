@@ -1,65 +1,73 @@
 import java.util.*;
+import java.util.stream.*;
 
 class Solution {
     
-    static class Food {
-        long index;
-        int leftTime;
+    static class Food implements Comparable<Food> {
+        public int time = 0;
         
-        Food (long index, int leftTime) {
-            this.index = index;
-            this.leftTime = leftTime;
+        public Food(int time) {
+            this.time = time;
+        }
+        
+        @Override
+        public int compareTo(Food other) {
+            return this.time - other.time; // 오름차순
         }
     }
     
     public int solution(int[] food_times, long k) {
-        PriorityQueue<Food> queue = new PriorityQueue<>((o1, o2) -> {
-            // leftTime 기준 오름차순 정렬
-            return o1.leftTime - o2.leftTime;  
-        });
+        // food_times로 List 만들기
+        List<Food> foods = Arrays.stream(food_times)
+            .mapToObj(Food::new)
+            .collect(Collectors.toList());
         
-        for (int i = 0 ; i < food_times.length ; i++) {
-            queue.offer(new Food(i + 1, food_times[i]));
-        }
+        // 동일한 객체 참조로 PriorityQueue 만들기
+        PriorityQueue<Food> pq = new PriorityQueue<>(foods);
         
-        long pre = 0;
-        while (!queue.isEmpty()) {
-            Food current = queue.peek();
-            
-            // 현재 빼야될 값의 합계
-            long minusValue = (current.leftTime - pre) * queue.size();
-            
-            // 빼야될 값의 합계가 k보다 작다면,
-            if (minusValue <= k) {
-                // 빼기
-                pre = queue.poll().leftTime;
-                k -= minusValue;
-                // 동일한 값이 있을 경우 같이 제외해준다
-                while(!queue.isEmpty() && queue.peek().leftTime == current.leftTime) {
-                    queue.poll();
-                }
-            }
-            // 빼야될 값의 합계가 k보다 크다면,
-            else if (minusValue > k) {
-                // 인덱스로 다시 정렬한 후 k번째 값 찾기
-                PriorityQueue<Food> indexQueue = new PriorityQueue<>((o1, o2) -> {
-                    return (int) (o1.index - o2.index);
-                });
+        int iterCount = 0;
+        while (k >= 0 && pq.size() > 0) {
+            iterCount++;
+            if (k >= pq.size()) {
+                // 현재 남은 음식보다 k가 크면 전체에서 1씩 뺴준다
+                // 실제로 1씩 빼는 연산을 하게 되면 timeout이 나게 되므로
+                // PriorityQueue를 사용해서 현재 값이 1인 Food를 제외해준다
+                // 현재 반복번째수를 기록해서 값이 반복번째수와 동일한 원소의 값을 0으로 만들고 PQ에서 제거한다
                 
-                for (Food food : queue) {
-                    indexQueue.offer(food);
+                k -= pq.size();
+                
+                Iterator<Food> iterator = pq.iterator();
+                while (iterator.hasNext()) {
+                    Food current = iterator.next();
+                    if (current.time <= iterCount) {
+                        current.time = 0;
+                        iterator.remove();
+                    } else {
+                        break;
+                    }
+                }   
+            } else {
+                // 남은 음식의 개수가 k보다 작으면 남은 음식 중에 k번째 음식을 반환한다
+                // 이때 반환되는 음식의 index는 제외됐던 음식도 포함되어야 한다
+                // 동일한 객체를 참조하는 List와 PriorityQueue를 만들어서
+                // 반복적인 삭제 연산에는 PQ를 사용하고, 마지막 index 찾기에는 List를 사용
+                
+                if (pq.size() == 0) {
+                    // 더 이상 섭취해야 할 음식이 없는 경우
+                    return -1;
                 }
                 
-                long answer = 0;
-                long iterSize = k % indexQueue.size();
-                for (long i = 0 ; i <= iterSize ; i++) {
-                    answer = indexQueue.poll().index;
+                int index = -1;
+                while (k >= 0) {
+                    index++;
+                    if (foods.get(index).time == 0) {
+                        continue;
+                    }
+                    k--;
                 }
-                return (int) answer;
+                return index + 1;
             }
         }
-        // k가 0으로 딱 떨어지는 경우
         return -1;
     }
-    
 }
