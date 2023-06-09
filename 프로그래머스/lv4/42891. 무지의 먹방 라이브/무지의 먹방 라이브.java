@@ -20,7 +20,7 @@ class Solution {
         // food_times로 List 만들기
         List<Food> foods = Arrays.stream(food_times)
             .mapToObj(Food::new)
-            .collect(Collectors.toList());
+            .collect(Collectors.toCollection(ArrayList::new));
         
         // 동일한 객체 참조로 PriorityQueue 만들기
         PriorityQueue<Food> pq = new PriorityQueue<>(foods);
