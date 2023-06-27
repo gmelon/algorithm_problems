@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.stream.*;
 
 class Solution {
     
@@ -27,22 +28,13 @@ class Solution {
     }
     
     public int[][] solution(int n, int[][] build_frame) {
-        
-        // [설치 - 가능 조건]
-        // 기둥 -> 주어진 좌표가 바닥 위인지?
-        //        주어진 좌표의 아래에 기둥이 있거나, 해당 좌표 || 좌측 좌표에 보가 있는지?
-        
-        // 보   -> 주어진 좌표 아래에 기둥이 있는지?
-        //        현재 좌표의 좌측 좌표와 우측 좌표에 보가 있는지?
-        
         List<Position> columns = new ArrayList<>(); // 기둥(0)
         List<Position> rows = new ArrayList<>(); // 보(1)
         
         // 시뮬레이션 시작
         for (int[] build : build_frame){
             Position newPosition = new Position(build[0], build[1]); // 가로, 세로
-            if (build[3] == 1) {
-                // 설치
+            if (build[3] == 1) { // 설치
                 if (build[2] == 0) {
                     // 기둥 설치 조건 검사
                     if(canBuildColumn(columns, rows, newPosition)) {
@@ -55,93 +47,70 @@ class Solution {
                         rows.add(newPosition);
                     }
                 }
-            } else {
-                // 삭제
-                List<Position> clonedColumns = new ArrayList<>(columns);
-                List<Position> clonedRows = new ArrayList<>(rows);
+            } else { // 삭제
                 boolean canRemove = true;
                 
                 if (build[2] == 0) {
                     // 임시로 기둥 삭제
-                    clonedColumns.remove(newPosition);
+                    columns.remove(newPosition);
                     
                     // 기존 기둥, 보가 유지 가능한지 검사
-                    for(Position clonedColumn: clonedColumns) {
-                        canRemove = canBuildColumn(clonedColumns, clonedRows, clonedColumn);
+                    for(Position column: columns) {
+                        canRemove = canBuildColumn(columns, rows, column);
                         if (!canRemove) {
                             break;
                         }
                     }
-                    if (!canRemove) {
-                        // 최적화를 위한 조기 종료
-                        continue;
-                    }
-                    for(Position clonedRow: clonedRows) {
-                        canRemove = canBuildRow(clonedColumns, clonedRows, clonedRow);
-                        if (!canRemove) {
-                            break;
-                        }
-                    }
-                    // 실제 리스트에서 삭제
                     if (canRemove) {
-                        columns.remove(newPosition);
+                        // 최적화를 위함
+                        for(Position row: rows) {
+                            canRemove = canBuildRow(columns, rows, row);
+                            if (!canRemove) {
+                                break;
+                            }
+                        }                        
+                    }
+                    
+                    // 삭제 불가능하면 다시 추가
+                    if (!canRemove) {
+                        columns.add(newPosition);
                     }
                 } else {
                     // 임시로 보 삭제
-                    clonedRows.remove(newPosition);
+                    rows.remove(newPosition);
                     
                     // 기존 기둥, 보가 유지 가능한지 검사
-                    for(Position clonedColumn: clonedColumns) {
-                        canRemove = canBuildColumn(clonedColumns, clonedRows, clonedColumn);
+                    for(Position column: columns) {
+                        canRemove = canBuildColumn(columns, rows, column);
                         if (!canRemove) {
                             break;
                         }
                     }
-                    if (!canRemove) {
-                        // 최적화를 위한 조기 종료
-                        continue;
-                    }
-                    for(Position clonedRow: clonedRows) {
-                        canRemove = canBuildRow(clonedColumns, clonedRows, clonedRow);
-                        if (!canRemove) {
-                            break;
-                        }
-                    }
-                    // 실제 삭제 가능 판단
                     if (canRemove) {
-                        rows.remove(newPosition);
+                        for(Position row: rows) {
+                            canRemove = canBuildRow(columns, rows, row);
+                            if (!canRemove) {
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // 삭제 불가능하면 다시 추가
+                    if (!canRemove) {
+                        rows.add(newPosition);
                     }
                 }
             }
-        }
+        } // for-loop(시뮬레이션) 완료
         
-        // 시뮬레이션 완료
-        
-        // 배열로 만들어서 반환
-        int answerSize = columns.size() + rows.size();
-        int[][] answer = new int[answerSize][3];
-        
-        int index = 0;
-        for(Position column: columns) {
-            answer[index][0] = column.x;
-            answer[index][1] = column.y;
-            answer[index][2] = 0; // 기둥
-            index++;
-        }
-        for(Position row: rows) {
-            answer[index][0] = row.x;
-            answer[index][1] = row.y;
-            answer[index][2] = 1; // 기둥
-            index++;
-        }
-        
-        // 정렬 후 반환
-        Arrays.sort(answer, 
-                    Comparator.comparingInt((int[] arr) -> arr[0])
-                   .thenComparing((int[] arr) -> arr[1])
-                   .thenComparing((int[] arr) -> arr[2]));
-        
-        return answer;        
+        // 배열로 만들고 정렬해서 반환
+        return Stream.concat(
+            columns.stream().map(column -> new int[]{column.x, column.y, 0}),
+            rows.stream().map(row -> new int[]{row.x, row.y, 1}))
+            .sorted(Comparator.comparingInt((int[] arr) -> arr[0])
+                   .thenComparingInt(arr -> arr[1])
+                   .thenComparingInt(arr -> arr[2]))
+            .toArray(int[][]::new);
     }
     
     public boolean canBuildColumn(List<Position> columns, List<Position> rows, Position newPosition) {
@@ -156,7 +125,8 @@ class Solution {
         }
 
         // 해당 좌표 || "좌측" 좌표에 보가 있는가?
-        if (rows.contains(newPosition) || rows.contains(newPosition.adjustedNewPosition(-1, 0))) {
+        if (rows.contains(newPosition) ||
+            rows.contains(newPosition.adjustedNewPosition(-1, 0))) {
             return true;
         }
         
