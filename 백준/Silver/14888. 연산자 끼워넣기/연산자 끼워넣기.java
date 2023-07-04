@@ -50,13 +50,7 @@ public class Main {
                 numbers, plusCount, minusCount, multiplyCount - 1, divideCount);
         }
         if (divideCount != 0) {
-            int nextResult;
-            if (currentResult < 0) {
-                nextResult = -(Math.abs(currentResult) / numbers[currentIndex]);
-            } else {
-                nextResult = currentResult / numbers[currentIndex];
-            }
-            search(currentIndex + 1, nextResult,
+            search(currentIndex + 1, currentResult / numbers[currentIndex],
                 numbers, plusCount, minusCount, multiplyCount, divideCount - 1);
         }
     }
