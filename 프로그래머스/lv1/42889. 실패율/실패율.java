@@ -1,12 +1,11 @@
 import java.util.*;
 import java.util.Map.*;
-import java.math.*;
 
 class Solution {
     public int[] solution(int N, int[] stages) {
-        Map<Integer, BigDecimal> fail = new HashMap<>();
+        Map<Integer, Double> fail = new HashMap<>();
         for(int i = 1 ; i <= N ; i++) {
-            fail.put(i, BigDecimal.ZERO);
+            fail.put(i, 0.0);
         }
 
         Arrays.sort(stages);
@@ -26,14 +25,14 @@ class Solution {
                 continue;
             } else {
                 curStagePlayerCount++;
-                fail.put(stages[i], BigDecimal.valueOf(curStagePlayerCount).divide(BigDecimal.valueOf(playerCount), 100, RoundingMode.HALF_UP));
+                fail.put(stages[i], ((double) curStagePlayerCount) / playerCount);
 
                 curStagePlayerCount = 0;
             }
         }
 
         return fail.entrySet().stream()
-            .sorted(Entry.<Integer, BigDecimal>comparingByValue(Comparator.reverseOrder()).thenComparingInt(Entry::getKey))
+            .sorted(Entry.<Integer, Double>comparingByValue(Comparator.reverseOrder()).thenComparingInt(Entry::getKey))
             .mapToInt(Entry::getKey)
             .toArray();
     }
