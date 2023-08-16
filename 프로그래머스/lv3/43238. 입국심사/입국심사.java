@@ -1,29 +1,30 @@
 class Solution {
     public long solution(int n, int[] times) {
-        long start = 0L;
-        long end = 1_000_000_000L * n;
+        // '심사를 받는데 걸리는 시간'을 조정하면서
+        // 해당 값이 유효(해당 시간에 모든 사람이 심사를 받을 수 있음) 하면서 최소가 될 때를 찾는다
         
+        long start = 0L;
+        long end = 1_000_000_000L * 1_000_000_000L;
         long answer = 0L;
+        
         while(start <= end) {
             long mid = (start + end) / 2;
-            long availableNumber = currentAvailableNumber(times, mid);
             
-            if (availableNumber >= n) {
-                answer = mid; // 일단 가능한 경우이므로 저장
+            // 시간 mid 안에 모든 사람이 심사를 받을 수 있는지 판단
+            long completedCount = 0L;
+            for (int time : times) {
+                completedCount += mid / time;
+            }
+            
+            if (completedCount >= n) {
+                // mid 안에 모든 사람 심사 가능
+                // 시간 줄이기
+                answer = mid;
                 end = mid - 1;
-            } else { // 아예 불가능한 경우이므로, 범위를 뒤로 이동시켜서 다시 탐색
+            } else {
                 start = mid + 1;
             }
         }
         return answer;
-    }
-    
-    // 현재 시간 currentTime까지 처리 가능한 사람의 총합을 계산
-    public long currentAvailableNumber(final int[] times, long currentTime) {
-        long availableNumber = 0L;
-        for (int time : times) {
-            availableNumber += (currentTime / time);
-        }
-        return availableNumber;
     }
 }
