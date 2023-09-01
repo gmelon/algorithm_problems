@@ -4,6 +4,10 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Scanner;
 
+/**
+ * https://www.acmicpc.net/problem/1238
+ */
+
 public class Main {
 
     public static final int INF = 1_000_000_000;
@@ -31,14 +35,21 @@ public class Main {
         int X = sc.nextInt(); // 목표 노드
 
         List<List<Node>> graph = new ArrayList<>();
+        List<List<Node>> reverseGraph = new ArrayList<>();
         // 그래프 초기화
         for (int i = 0; i < N + 1; i++) {
             graph.add(new ArrayList<>());
+            reverseGraph.add(new ArrayList<>());
         }
 
         // 간선 입력
         for (int i = 0; i < M; i++) {
-            graph.get(sc.nextInt()).add(new Node(sc.nextInt(), sc.nextInt()));
+            int from = sc.nextInt();
+            int to = sc.nextInt();
+            int distance = sc.nextInt();
+            
+            graph.get(from).add(new Node(to, distance));
+            reverseGraph.get(to).add(new Node(from, distance));
         }
 
         sc.close();
@@ -50,17 +61,14 @@ public class Main {
         times = dijkstra(graph, X, N);
 
         // 2. 전체 노드 -> X 로의 거리 계산 후 (누적)
+        int[] tempTimes = dijkstra(reverseGraph, X, N);
         for (int i = 1; i < N + 1; i++) {
-            int[] tempTimes = dijkstra(graph, i, N);
-            times[i] += tempTimes[X];
+            times[i] += tempTimes[i];
         }
 
         int max = Integer.MIN_VALUE;
-        for (int time : times) {
-            if (time >= INF) {
-                continue;
-            }
-            max = Math.max(max, time);
+        for (int i = 1, timeLength = times.length; i < timeLength; i++) {
+            max = Math.max(max, times[i]);
         }
 
         System.out.println(max);
