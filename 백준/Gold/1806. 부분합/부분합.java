@@ -19,12 +19,10 @@ public class Main {
         int answer = Integer.MAX_VALUE;
         while (start < N && end < N) {
             if (sum < S) {
-                end++;
-                sum += numbers[end];
+                sum += numbers[++end];
             } else {
                 answer = Math.min(answer, end - start + 1);
-                sum -= numbers[start];
-                start++;
+                sum -= numbers[start++];
             }
         }
 
