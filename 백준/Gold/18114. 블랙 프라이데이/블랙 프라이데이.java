@@ -25,40 +25,31 @@ public class Main {
         sc.close();
 
         // 풀이 시작
-        // 이 시점엔 2/3개로 완성 가능
         Collections.sort(weights);
+        int firstIndex = 0;
+        int secondIndex = weights.size() - 1;
 
-        for (int firstIndex = 0; firstIndex < weights.size(); firstIndex++) {
-            int firstWeight = weights.get(firstIndex);
-
-            // 2개의 수를 통해 만들 수 있는 C 이하의 최대 수를 찾는다
-            int secondIndex = binarySearch(0, weights.size() - 1, C - firstWeight);
-            if (secondIndex == firstIndex) {
-                continue;
-            }
-
-            // 2개의 수로 완성 가능
-            if (firstWeight + weights.get(secondIndex) == C) {
+        while (firstIndex < secondIndex) {
+            int firstAndSecondValue = weights.get(firstIndex) + weights.get(secondIndex);
+            if (firstAndSecondValue == C) {
                 System.out.println(1);
                 return;
             }
-
-            // 3개의 수로 가능한지 탐색
-            // i + 1 ~ max 사이에서만 탐색하면 됨
-            // max를 i + 1 까지 감소시키면서 C -  (currentWeight + max) 가 존재하는지 확인
-            for (; secondIndex >= firstIndex + 1; secondIndex--) {
-                int thirdIndex = binarySearch(firstIndex + 1, secondIndex - 1, C - (firstWeight + weights.get(secondIndex)));
-                if (thirdIndex == secondIndex || thirdIndex == firstIndex) {
-                    continue;
+            if (firstAndSecondValue > C) {
+                secondIndex--;
+            } else {
+                // firstIndex ~ secondIndex 사이에 조건을 만족하는 값이 있는지 찾는다
+                int thirdIndex = binarySearch(firstIndex + 1, secondIndex - 1,
+                    C - (firstAndSecondValue));
+                if (thirdIndex != firstIndex && thirdIndex != secondIndex) {
+                    if (firstAndSecondValue + weights.get(thirdIndex) == C) {
+                        System.out.println(1);
+                        return;
+                    }
                 }
-                if (weights.get(thirdIndex) == C - (firstWeight + weights.get(secondIndex))) {
-                    System.out.println(1);
-                    return;
-                }
+                firstIndex++;
             }
         }
-
-        // 여기 도달하면 모든 경우의 수가 불가능
         System.out.println(0);
     }
 
