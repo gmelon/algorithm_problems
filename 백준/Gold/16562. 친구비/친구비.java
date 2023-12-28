@@ -53,7 +53,7 @@ public class Main {
             Fee current = fees.poll();
 
             // 준석이가 0번 index
-            if (findParent(current.index) != findParent(0)) {
+            if (findParent(current.index) != 0) {
                 unionParent(current.index, 0);
                 minCost += current.fee;
             }
