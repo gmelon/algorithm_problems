@@ -1,4 +1,3 @@
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,45 +30,47 @@ public class Main {
 
         int[] parents = new int[N];
         for (int i = 0; i < parents.length; i++) {
-            // init
+            // parents 배열 init
             parents[i] = i;
         }
 
-        // union
+        // 기존 친구 union
         for (int i = 0; i < M; i++) {
             unionParent(parents, sc.nextInt() - 1, sc.nextInt() - 1);
         }
 
         sc.close();
 
-        Map<Integer, Group> count = new HashMap<>(); // parents, count
+        Map<Integer, Group> groupMap = new HashMap<>(); // parents, count
         for (int i = 0; i < N; i++) {
             int parent = findParent(parents, i);
-            Group group = count.getOrDefault(parent, new Group(0, 0));
-
-            count.put(parent, new Group(group.candyCount + children[i], group.childrenCount + 1));
+            
+            groupMap.merge(parent, new Group(children[i], 1), (g1, g2) -> {
+            	g1.candyCount += g2.candyCount;
+            	g1.childrenCount += g2.childrenCount;
+    			return g1;
+            });
         }
 
-        // 한번에 먹어야 하는 사탕 개수, 오름차순
-        List<Group> candies = count.values().stream()
-            .sorted(Comparator.comparingInt(g -> g.childrenCount))
+        // Map을 list로 변환
+        List<Group> groups = groupMap.values().stream()
             .collect(Collectors.toList());
 
         // 여기부터는 0-1 가방 문제
-        int[][] table = new int[candies.size() + 1][K]; // K-1까지 가능
-        for (int i = 1; i <= candies.size(); i++) {
+        int[][] table = new int[groups.size() + 1][K]; // K-1까지 가능
+        for (int i = 1; i <= groups.size(); i++) {
             for (int k = 0; k <= K - 1; k++) {
-                if (candies.get(i - 1).childrenCount > k) {
+                if (groups.get(i - 1).childrenCount > k) {
                     // 담을 수 없음
                     table[i][k] = table[i - 1][k];
                 } else {
                     // 담을 수 있음
-                    table[i][k] = Math.max(table[i - 1][k], table[i - 1][k - candies.get(i - 1).childrenCount] + candies.get(i - 1).candyCount);
+                    table[i][k] = Math.max(table[i - 1][k], table[i - 1][k - groups.get(i - 1).childrenCount] + groups.get(i - 1).candyCount);
                 }
             }
         }
 
-        System.out.println(table[candies.size()][K - 1]);
+        System.out.println(table[groups.size()][K - 1]);
     }
 
     static int findParent(int[] parents, int target) {
