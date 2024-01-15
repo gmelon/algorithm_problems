@@ -2,7 +2,7 @@ import java.util.Scanner;
 
 public class Main {
 
-    static boolean[][] visited;
+    static int[] board;
     static int count = 0;
 
     public static void main(String[] args) {
@@ -10,64 +10,44 @@ public class Main {
         int n = sc.nextInt();
         sc.close();
 
-        visited = new boolean[n][n];
+        // 1차원 배열을 사용하는 버전
 
-        // 첫째행 모든 열에 대하여 탐색
-        for(int y = 0 ; y < n ; y++) {
-            visited[0][y] = true;
-            dfs(0, y);
-            visited[0][y] = false;
-        }
+        board = new int[n]; // index - 행, 값 - 열
+
+        dfs(0, n);
 
         System.out.println(count);
     }
 
-    static void dfs(int x, int y) {
-        // 행은 무조건 가능
-        // 열 검사
-        if (isPossible(x, y)) {
-            // 마지막 행이면 count++ 후 종료
-            if (x == visited.length - 1) {
-                count++;
-                return;
-            }
-            // 가능하면, 다시 아래 행의 모든 열 탐색
-            for(int i = 0 ; i < visited.length ; i++) {
-                visited[x + 1][i] = true;
-                dfs(x + 1, i);
-                visited[x + 1][i] = false;
+    static void dfs(int row, int n) {
+        if (row == n) {
+            // 마지막 행까지 모두 채움
+            count++;
+            return;
+        }
+
+        for (int col = 0; col < n; col++) {
+            board[row] = col;
+
+            if (isPossible(row)) {
+                // 현재의 row, col이 가능한 위치면
+                // 계속해서 아래 행으로 진행
+                dfs(row + 1, n);
             }
         }
-        // 불가능하다면 반환
     }
 
-    // 좌상, 우상
-    static int[] dx = {-1, -1};
-    static int[] dy = {-1, 1};
-
-    static boolean isPossible(int x, int y) {
-        // 열 검사 (현재 행 이전까지만 검사하면 됨)
-        for(int i = 0 ; i < x ; i++) {
-            if (visited[i][y]) return false;
+    static boolean isPossible(int row) {
+        // 열 확인 - 동일한 값이 존재하는지 확인
+        for (int i = 0; i < row; i++) {
+            if (board[i] == board[row]) return false;
         }
 
-        // 대각선 검사 - 현재 행 기준 좌상 & 우상만 검사하면 됨
-        for(int d = 0 ; d < dx.length ; d++) {
-            int nX = x;
-            int nY = y;
-            for (int i = x - 1; i >= 0; i--) {
-                nX += dx[d];
-                nY += dy[d];
-
-                // 범위
-                if (nX < 0 || nX >= visited.length || nY < 0 || nY >= visited.length) {
-                    continue;
-                }
-
-                // visited
-                if (visited[nX][nY]) return false;
-            }
+        // 대각선 확인 - 기울기가 같은게 있는지 확인
+        for (int i = 0; i < row; i++) {
+            if (row - i == Math.abs(board[row] - board[i])) return false;
         }
+
         return true;
     }
 }
