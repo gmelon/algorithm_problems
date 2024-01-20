@@ -1,63 +1,78 @@
 import java.util.Scanner;
 
 public class Main {
-    static int count = 1_000;
-    static boolean[][] move;
+
+    static boolean[][] moveRight;
+    static int answer = 4;
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        int N = sc.nextInt(); // 세로선의 개수
-        int M = sc.nextInt(); // 기존 가로선의 개수
-        int H = sc.nextInt(); // 가로선을 놓을 수 있는 위치의 개수
+        int N = sc.nextInt();
+        int M = sc.nextInt();
+        int H = sc.nextInt();
 
-        move = new boolean[H + 1][N + 2];
+        moveRight = new boolean[H + 1][N + 2]; // 1부터 시작
+
         for (int i = 0; i < M; i++) {
-            int direction = sc.nextInt();
+            int row = sc.nextInt();
             int from = sc.nextInt();
-            move[direction][from] = true; // 우측으로 이동
+
+            moveRight[row][from] = true;
         }
+
         sc.close();
 
         // 풀이 시작
-        dfs(1, 1, 0);
+        backtraking(1, 1, 0);
 
-        System.out.println(count == 1_000 ? -1 : count);
+        System.out.println(answer == 4 ? -1 : answer);
     }
 
-    static void dfs(int row, int col, int depth) {
-        if (depth == 4) return;
+    static void backtraking(int row, int col, int depth) {
+        if (depth >= 4) {
+            // 최대 3개 까지만 가능
+            return;
+        }
 
-        // 가능한지 검사
         if (check()) {
-            // 가능하면 count = depth 후 리턴
-            count = Math.min(depth, count);
-        } else {
-            // 불가능하면 depth + 1로 다시 탐색
-            for(int x = row ; x < move.length; x++) {
-                for (int y = 1; y < move[0].length - 1; y++) {
-                    if (move[x][y] || move[x][y - 1] || move[x][y + 1]) continue;
+            // 현재 상황에서 가능하면 answer 업데이트
+            answer = Math.min(answer, depth);
+            return;
+        }
 
-                    // 현재 위치에 가로선 연결
-                    move[x][y] = true;
-                    dfs(x, y, depth + 1);
-                    move[x][y] = false;
+        // 다시 탐색
+        for (int newRow = row; newRow < moveRight.length; newRow++) {
+            for (int newCol = 1; newCol < moveRight[0].length - 1; newCol++) {
+                // row에선 col 이전까지 무시
+                if (newRow == row && newCol < col) {
+                    continue;
                 }
+
+                // 이미 좌, 우, 현위치에 가로선이 있으면 불가능
+                if (moveRight[newRow][newCol] || moveRight[newRow][newCol - 1] || moveRight[newRow][newCol + 1]) {
+                    continue;
+                }
+
+                moveRight[newRow][newCol] = true;
+                backtraking(newRow, newCol, depth + 1);
+                moveRight[newRow][newCol] = false;
             }
         }
     }
 
+    // 현재 상황에서 가능한지 확인
     static boolean check() {
-        // 모든 열이 i -> i로 나와야 함
-        for (int col = 1; col < move[0].length - 1; col++) {
-            int curY = col;
-            for (int row = 1; row < move.length; row++) {
-                if (move[row][curY - 1])
-                    curY--;
-                else if (move[row][curY])
-                    curY++;
+        // 모든 col -> col 이 되어야 함
+        for (int col = 1; col < moveRight[0].length - 1; col++) {
+            int modCol = col;
+            for (int row = 1; row < moveRight.length; row++) {
+                if (moveRight[row][modCol]) {
+                    modCol++;
+                } else if(moveRight[row][modCol - 1]) {
+                    modCol--;
+                }
             }
-            if (col != curY)
-                return false;
+            if (col != modCol) return false;
         }
         return true;
     }
