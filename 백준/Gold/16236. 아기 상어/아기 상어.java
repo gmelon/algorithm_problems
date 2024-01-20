@@ -8,18 +8,31 @@ public class Main {
     static int[][] board;
 
     // 상어 정보
-    static int sharkRow;
-    static int sharkCol;
-    static int sharkSize = 2;
-    static int eatCount = 0;
+    static Shark shark;
 
     // 먹을 수 있는 물고기 정보
     static int fishRow;
     static int fishCol;
     static int fishDist = 1_000_000_000;
 
-    static class Position {
+    static class Shark {
+        int row, col, size = 2, eatCount = 0;
 
+        public Shark(int row, int col) {
+            this.row = row;
+            this.col = col;
+        }
+
+        public void eat() {
+            eatCount++;
+            if (eatCount == size) {
+                size++;
+                eatCount = 0;
+            }
+        }
+    }
+
+    static class Position {
         int row, col, dist;
 
         public Position(int row, int col, int dist) {
@@ -43,8 +56,7 @@ public class Main {
                 board[i][j] = sc.nextInt();
 
                 if (board[i][j] == 9) {
-                    sharkRow = i;
-                    sharkCol = j;
+                    shark = new Shark(i, j);
                     board[i][j] = 0;
                 }
             }
@@ -52,25 +64,19 @@ public class Main {
         sc.close();
 
         // 풀이 시작
-
         bfs(); // 주변에 먹을 수 있는 물고기가 있는지 탐색
         while (fishDist != 1_000_000_000) {
             // 있으면 먹기
             board[fishRow][fishCol] = 0;
 
             time += fishDist;
-            sharkRow = fishRow;
-            sharkCol = fishCol;
+            shark.row = fishRow;
+            shark.col = fishCol;
+            shark.eat();
 
             fishRow = N;
             fishCol = N;
             fishDist = 1_000_000_000;
-
-            eatCount++;
-            if (eatCount >= sharkSize) {
-                sharkSize++;
-                eatCount = 0;
-            }
 
             bfs(); // 다시 탐색
         }
@@ -87,8 +93,8 @@ public class Main {
         Queue<Position> queue = new LinkedList<>();
         boolean[][] visited = new boolean[board.length][board.length];
 
-        queue.offer(new Position(sharkRow, sharkCol, 0));
-        visited[sharkRow][sharkCol] = true;
+        queue.offer(new Position(shark.row, shark.col, 0));
+        visited[shark.row][shark.col] = true;
 
         while (!queue.isEmpty()) {
             Position current = queue.poll();
@@ -107,7 +113,7 @@ public class Main {
                 }
 
                 // 주변을 확인해서 먹을 수 있는 물고기가 있으면 조건에 따라 변수에 할당
-                if (board[nX][nY] > 0 && board[nX][nY] < sharkSize) {
+                if (board[nX][nY] > 0 && board[nX][nY] < shark.size) {
                     if (nX > fishRow) {
                         continue;
                     }
@@ -118,7 +124,7 @@ public class Main {
                     fishRow = nX;
                     fishCol = nY;
                     fishDist = current.dist + 1;
-                } else if (board[nX][nY] <= sharkSize) {
+                } else if (board[nX][nY] <= shark.size) {
                     // 먹을 순 없지만 지나갈 순 있으면 지나가기
                     visited[nX][nY] = true;
                     queue.offer(new Position(nX, nY, current.dist + 1));
@@ -126,5 +132,4 @@ public class Main {
             }
         }
     }
-
 }
