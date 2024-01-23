@@ -39,7 +39,7 @@ public class Main {
                 continue;
             }
 
-            if (current.value > target || current.depth > count) {
+            if (current.value > target) {
                 continue;
             }
 
