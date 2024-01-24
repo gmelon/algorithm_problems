@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.StringTokenizer;
 
 public class Main {
@@ -15,19 +16,19 @@ public class Main {
         }
         br.close();
 
-        // 풀이 시작
         int[] dp = new int[n];
-        int max = 0;
-        for (int i = n - 1; i >= 0; i--) {
-            dp[i] = 1;
-            for (int j = i + 1; j < n ; j++) {
-                if (arr[j] > arr[i]) {
-                    dp[i] = Math.max(dp[i], dp[j] + 1);
+
+        // 풀이 시작
+        for (int i = 0; i < n; i++) {
+            dp[i] = 1; // 기본값 - 자기 자신만큼 증가
+            for (int j = i - 1; j >= 0; j--) {
+                if (arr[j] < arr[i] && dp[j] >= dp[i]) {
+                    dp[i] = dp[j] + 1;
                 }
             }
-            max = Math.max(max, dp[i]);
         }
 
+        int max = Arrays.stream(dp).max().getAsInt();
         System.out.println(max);
     }
 }
