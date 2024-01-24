@@ -20,17 +20,14 @@ public class Main {
         int max = 0;
         for (int i = n - 1; i >= 0; i--) {
             dp[i] = 1;
-            int innerMax = 0;
             for (int j = i + 1; j < n ; j++) {
                 if (arr[j] > arr[i]) {
-                    innerMax = Math.max(innerMax, dp[j]);
+                    dp[i] = Math.max(dp[i], dp[j] + 1);
                 }
             }
-            dp[i] += innerMax;
             max = Math.max(max, dp[i]);
         }
 
         System.out.println(max);
     }
 }
-
