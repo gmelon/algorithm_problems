@@ -10,13 +10,13 @@ public class Main {
     // 상, 우, 하, 좌
     static int[] dx = {-1, 0, 1, 0};
     static int[] dy = {0, 1, 0, -1};
+    static int[] rorateCounts = {0, 4, 2, 4, 4, 1};
 
     static int minZeroCount = Integer.MAX_VALUE;
 
     static List<Camera> cameras;
 
     static class Camera {
-
         int x, y;
         int type;
         int direction;
@@ -46,9 +46,7 @@ public class Main {
         }
         sc.close();
 
-        // 풀이 시작
         find(0, arr);
-
         System.out.println(minZeroCount);
     }
 
@@ -69,7 +67,7 @@ public class Main {
 
         // 현재 카메라를 4방향으로 돌리면서 맵 변경
         Camera current = cameras.get(currentCameraIndex);
-        int rotateCount = resolveRotateCount(current.type);
+        int rotateCount = rorateCounts[current.type];
         for (int i = 0; i < rotateCount; i++) {
             // 맵 복제
             int[][] copiedArr = deepCopy(arr);
@@ -111,15 +109,12 @@ public class Main {
             if (arr[nX][nY] == WALL) {
                 break;
             }
-
             if (arr[nX][nY] == 0) {
                 arr[nX][nY] = -1;
             }
-
             nX += dx;
             nY += dy;
         }
-
     }
 
     static int[][] deepCopy(int[][] arr) {
@@ -129,14 +124,4 @@ public class Main {
         }
         return copiedArr;
     }
-
-    static int resolveRotateCount(int type) {
-        if (type == 2) {
-            return 2;
-        } else if (type == 5) {
-            return 1;
-        }
-        return 4;
-    }
-
 }
