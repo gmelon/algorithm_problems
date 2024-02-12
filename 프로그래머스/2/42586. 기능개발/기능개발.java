@@ -1,36 +1,24 @@
 import java.util.*;
 
 class Solution {
-    static class Feature {
-        int progress, speed;
-        Feature(int progress, int speed) {
-            this.progress = progress;
-            this.speed = speed;
-        }
-    }
-    
     public int[] solution(int[] progresses, int[] speeds) {
-        Deque<Feature> queue = new ArrayDeque<>();
+        Deque<Integer> queue = new ArrayDeque<>();
         for(int i = 0 ; i < progresses.length ; i++) {
-            queue.offer(new Feature(progresses[i], speeds[i]));
+            queue.offer((int) Math.ceil((double) (100 - progresses[i]) / speeds[i]));
         }
         
         List<Integer> answers = new ArrayList<>();
+        int last = 0;
         while(!queue.isEmpty()) {
-            // 작업 진행
-            for(Feature feature : queue) {
-                feature.progress += feature.speed;
-            }
+            last = queue.peek();
             
             // 출시할 수 있는 기능들 한번에 출시
             int count = 0;
-            while(!queue.isEmpty() && queue.peek().progress >= 100) {
+            while(!queue.isEmpty() && queue.peek() <= last) {
                 queue.poll();
                 count++;
             }
-            if (count != 0) {
-                answers.add(count);   
-            }
+            answers.add(count);
         }
         
         return answers.stream().mapToInt(i -> i).toArray();
