@@ -1,3 +1,5 @@
+// 32,004kb / 324ms
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -9,7 +11,7 @@ public class Main {
     static int C;
     static boolean[][] visited;
 
-    static int maxCount = 0;
+    static int maxCount = 0; // 답
 
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -22,12 +24,14 @@ public class Main {
         for (int i = 0; i < R; i++) {
             String line = br.readLine();
             for (int j = 0; j < C; j++) {
+                // 벽은 이미 방문한 것으로 처리
                 visited[i][j] = line.charAt(j) == 'x';
             }
         }
         br.close();
 
         for (int i = 0; i < R; i++) {
+            // 모든 파이프 출발 지점 대하여 dfs
             dfs(i, 0);
         }
         System.out.println(maxCount);
@@ -49,9 +53,10 @@ public class Main {
                 continue;
             }
 
+            // 한번 실패한 지점은 다시 시도해도 실패하므로 복구 X
             visited[nX][nY] = true;
-            boolean result = dfs(nX, nY);
-            if (result) {
+            if (dfs(nX, nY)) {
+                // 하나의 경로가 완성되면 더 이상 시도 X
                 return true;
             }
         }
