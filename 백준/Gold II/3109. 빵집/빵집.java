@@ -7,7 +7,6 @@ public class Main {
 
     static int R;
     static int C;
-    static int[][] board;
     static boolean[][] visited;
 
     static int maxCount = 0;
@@ -19,12 +18,11 @@ public class Main {
         R = Integer.parseInt(st.nextToken());
         C = Integer.parseInt(st.nextToken());
 
-        board = new int[R][C]; // -1이면 벽
         visited = new boolean[R][C];
         for (int i = 0; i < R; i++) {
             String line = br.readLine();
             for (int j = 0; j < C; j++) {
-                board[i][j] = line.charAt(j) == '.' ? 0 : -1;
+                visited[i][j] = line.charAt(j) == 'x';
             }
         }
         br.close();
@@ -47,11 +45,7 @@ public class Main {
             int nX = x + dx[d];
             int nY = y + 1;
 
-            if (nX < 0 || nX >= R || nY < 0 || nY >= C || board[nX][nY] == -1) {
-                continue;
-            }
-
-            if (visited[nX][nY] || ((nX < R - 1 && visited[nX + 1][nY]) && (nY >= 1 && visited[nX][nY - 1]))) {
+            if (nX < 0 || nX >= R || nY < 0 || nY >= C || visited[nX][nY]) {
                 continue;
             }
 
@@ -59,8 +53,6 @@ public class Main {
             boolean result = dfs(nX, nY);
             if (result) {
                 return true;
-            } else {
-//                visited[nX][nY] = false;
             }
         }
         return false;
