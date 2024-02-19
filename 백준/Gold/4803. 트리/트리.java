@@ -50,10 +50,7 @@ public class Main {
 
             int count = 0;
             for (int i = 1; i <= N; i++) {
-                if (visited[i]) {
-                    continue;
-                }
-                if (bfs(graph, visited, i)) {
+                if (!visited[i] && bfs(graph, visited, i)) {
                     count++;
                 }
             }
@@ -81,7 +78,6 @@ public class Main {
         queue.offer(new Node(-1, start));
 
         boolean result = true;
-
         while (!queue.isEmpty()) {
             Node node = queue.poll();
 
@@ -92,7 +88,7 @@ public class Main {
                 }
 
                 if (visited[neighbor]) {
-                    // 싸이클 존재
+                    // 싸이클 존재, 나머지도 다 방문해서 지워주기
                     result = false;
                     continue;
                 }
@@ -101,7 +97,6 @@ public class Main {
                 queue.offer(new Node(node.current, neighbor));
             }
         }
-
         return result;
     }
 }
