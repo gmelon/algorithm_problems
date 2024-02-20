@@ -68,23 +68,23 @@ public class Main {
 
                 // 대각선 이동
                 for (int c = -1; c <= 1; c += 2) {
-                    nX = current.x + dx[d] + dx[d] + c * dcx[d];
-                    nY = current.y + dy[d] + dy[d] + c * dcy[d];
+                    int ncX = nX + dx[d] + c * dcx[d];
+                    int ncY = nY + dy[d] + c * dcy[d];
 
                     // 경로에 target이 있으면 불가능
-                    if (nX == target.x && nY == target.y) {
+                    if (ncX == target.x && ncY == target.y) {
                         continue;
                     }
 
-                    nX += dx[d] + c * dcx[d];
-                    nY += dy[d] + c * dcy[d];
+                    ncX += dx[d] + c * dcx[d];
+                    ncY += dy[d] + c * dcy[d];
 
-                    if (isInvalidRange(nX, nY, visited)) {
+                    if (isInvalidRange(ncX, ncY, visited)) {
                         continue;
                     }
 
-                    visited[nX][nY] = true;
-                    queue.offer(new Position(nX, nY, current.count + 1));
+                    visited[ncX][ncY] = true;
+                    queue.offer(new Position(ncX, ncY, current.count + 1));
                 }
             }
         }
