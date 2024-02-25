@@ -1,118 +1,99 @@
-import java.util.ArrayList;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-import java.util.Scanner;
+import java.util.StringTokenizer;
 
 public class Main {
 
-    static class Rotation {
-        int time;
-        char direction;
-
-        public Rotation(int time, char direction) {
-            this.time = time;
-            this.direction = direction;
-        }
-
-        public int nextDirectionIndex(int currentDirectionIndex) {
-            if (direction == 'L') {
-                currentDirectionIndex--;
-                if (currentDirectionIndex == -1) {
-                    return 3;
-                }
-            } else {
-                currentDirectionIndex++;
-                if (currentDirectionIndex == 4) {
-                    return 0;
-                }
-            }
-            return currentDirectionIndex;
-        }
-    }
-
     static class Position {
-        int x, y;
 
-        public Position(int x, int y) {
+        int x, y, dir;
+
+        public Position(int x, int y, int dir) {
             this.x = x;
             this.y = y;
-        }
-
-        public Position movedPosition(int dx, int dy) {
-            return new Position(x + dx, y + dy);
-        }
-
-        public boolean isOutOfBound(int N) {
-            return x < 1 || x > N || y < 1 || y > N;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (!(obj instanceof Position)) {
-                return false;
-            }
-            Position p = (Position) obj;
-            return this.x == p.x && this.y == p.y;
+            this.dir = dir;
         }
     }
 
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
+    // 우 -> 하 -> 좌 -> 상
+    static int[] dx = {0, 1, 0, -1};
+    static int[] dy = {1, 0, -1, 0};
 
-        int N = sc.nextInt(); // 보드의 크기
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
-        int K = sc.nextInt(); // 사과의 개수
-        List<Position> apples = new ArrayList<>();
+        int N = Integer.parseInt(br.readLine()); // 보드 크기
+
+        char[][] board = new char[N][N]; // 'a' - 사과, 's' - 뱀
+        int K = Integer.parseInt(br.readLine()); // 사과 개수
         for (int i = 0; i < K; i++) {
-            apples.add(new Position(sc.nextInt(), sc.nextInt()));
+            StringTokenizer st = new StringTokenizer(br.readLine());
+            board[Integer.parseInt(st.nextToken()) - 1][Integer.parseInt(st.nextToken()) - 1] = 'a';
         }
 
-        int L = sc.nextInt(); // 방향 변환 횟수
-        Queue<Rotation> rotations = new LinkedList<>();
-        for (int i = 0; i < L; i++) {
-            rotations.add(new Rotation(sc.nextInt(), sc.nextLine().trim().charAt(0)));
-        }
+        int L = Integer.parseInt(br.readLine()); // 방향 전환 횟수
+        int nextL = 0;
 
-        // 방향 정보, 동쪽부터 시계방향 동/남/서/북
-        int[] dx = {0, 1, 0, -1};
-        int[] dy = {1, 0, -1, 0};
+        // 방향 전환 정보
+        int nextTurnTime = 0;
+        char nextTurnDir = 'I'; // dummy
 
-        // 뱀 몸통
-        Deque<Position> snake = new LinkedList<>();
+        board[0][0] = 's';
 
-        // 초기 위치, 방향 설정
-        int currentDirectionIndex = 0; // 0(동), 1(남), 2(서), 3(북)
-        snake.offer(new Position(1, 1));
+        Deque<Position> snake = new ArrayDeque<>();
+        snake.offer(new Position(0, 0, 0)); // 뱀의 머리
 
-        // 시뮬레이션 시작
         int time = 0;
-        while (!snake.isEmpty()) { // 벽에 부딪히거나 몸통과 만나면 종료
-            time++;
-            Position nextHead = snake.peekFirst().movedPosition(dx[currentDirectionIndex], dy[currentDirectionIndex]);
-            // 벽이나 몸통과 부딪히는 경우
-            if (nextHead.isOutOfBound(N) || snake.contains(nextHead)) {
-                break;
-            } else {
-                // 계속해서 진행
-                snake.offerFirst(nextHead); // 머리 늘리기
-                if (!apples.contains(nextHead)) {
-                    // 새로운 머리에 사과가 없으면 꼬리 하나 제거
-                    snake.pollLast(); 
-                } else {
-                    // 사과가 있으면 사과 제거
-                    apples.remove(nextHead);
+        while (true) {
+            Position front = snake.peekFirst();
+            if (nextTurnTime == time) {
+                // 방향 전환
+                if (nextTurnDir == 'L') {
+                    // 좌회전
+                    front.dir -= 1;
+                    if (front.dir < 0) {
+                        front.dir = 3;
+                    }
+                } else if (nextTurnDir == 'D') {
+                    // 우회전
+                    front.dir = (front.dir + 1) % 4;
+                }
+
+                // 다음 방향 갱신
+                if (nextL++ < L) {
+                    StringTokenizer st = new StringTokenizer(br.readLine());
+                    nextTurnTime = Integer.parseInt(st.nextToken());
+                    nextTurnDir = st.nextToken().charAt(0);
                 }
             }
 
-            // 이동 완료 후 방향 전환이 있으면 수행
-            if (!rotations.isEmpty() && rotations.peek().time == time) {
-                currentDirectionIndex = rotations.poll().nextDirectionIndex(currentDirectionIndex);
-            }
-        } // 시뮬레이션 종료
+            // 이동
+            int nX = front.x + dx[front.dir];
+            int nY = front.y + dy[front.dir];
 
-        System.out.println(time);
+            if (nX < 0 || nX >= N || nY < 0 || nY >= N || board[nX][nY] == 's') {
+                // 벽, 몸통 충돌
+                break;
+            }
+
+            // 머리먼저 이동
+            snake.addFirst(new Position(nX, nY, front.dir));
+
+            if (board[nX][nY] != 'a') {
+                // 사과가 아니면 꼬리 삭제
+                Position rear = snake.pollLast();
+                board[rear.x][rear.y] = 0;
+            }
+
+            // 사과가 있었다면 먹기, 머리 이동
+            board[nX][nY] = 's';
+            time++;
+        }
+
+        System.out.println(time + 1);
     }
 
 }
