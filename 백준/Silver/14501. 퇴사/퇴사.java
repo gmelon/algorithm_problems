@@ -28,18 +28,16 @@ public class Main {
         int[] dp = new int[N + 1]; // dp[i] = i + 1일의 최대 수익 (i일까지의 상담 진행)
 
         for (int i = 0; i < N; i++) {
-            if (i != 0) {
-                // 현재까지의 최대값 갱신
-                dp[i] = Math.max(dp[i - 1], dp[i]);
-            }
-
             if (i + nodes[i].time <= N) {
                 // 현재 상담으로 인해 변경되는 최대값 갱신
                 dp[i + nodes[i].time] = Math.max(dp[i + nodes[i].time], dp[i] + nodes[i].cost);
             }
+
+            // 현재까지 상담 중 최대 경로를 선택
+            dp[i + 1] = Math.max(dp[i + 1], dp[i]);
         }
 
-        System.out.println(Math.max(dp[N], dp[N - 1]));
+        System.out.println(dp[N]);
     }
 
 }
