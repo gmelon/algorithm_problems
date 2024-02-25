@@ -1,46 +1,45 @@
-import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.StringTokenizer;
 
 public class Main {
 
-    static class Counseling {
-        int time;
-        int price;
-
-        public Counseling(int time, int price) {
+    static class Node {
+        int time, cost;
+        public Node(int time, int cost) {
             this.time = time;
-            this.price = price;
+            this.cost = cost;
         }
     }
 
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        int N = sc.nextInt();
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
-        Counseling[] counselings = new Counseling[N];
+        int N = Integer.parseInt(br.readLine());
+        Node[] nodes = new Node[N]; // 0 ~ N-1일까지의 상담 정보
         for (int i = 0; i < N; i++) {
-            counselings[i] = new Counseling(sc.nextInt(), sc.nextInt());
+            StringTokenizer st = new StringTokenizer(br.readLine());
+            nodes[i] = new Node(Integer.parseInt(st.nextToken()), Integer.parseInt(st.nextToken()));
         }
-
-        sc.close();
+        br.close();
 
         // 풀이 시작
-        int[] dp = new int[N + 1];
+        int[] dp = new int[N + 1]; // dp[i] = i + 1일의 최대 수익 (i일까지의 상담 진행)
+
         for (int i = 0; i < N; i++) {
-            int completeDate = i + counselings[i].time;
-            if (completeDate <= N) {
-                int currentMax = 0;
-                for (int j = i; j >= 0; j--) {
-                    currentMax = Math.max(currentMax, dp[j]);
-                }
-                dp[completeDate] = Math.max(dp[completeDate], currentMax + counselings[i].price);
+            if (i != 0) {
+                // 현재까지의 최대값 갱신
+                dp[i] = Math.max(dp[i - 1], dp[i]);
+            }
+
+            if (i + nodes[i].time <= N) {
+                // 현재 상담으로 인해 변경되는 최대값 갱신
+                dp[i + nodes[i].time] = Math.max(dp[i + nodes[i].time], dp[i] + nodes[i].cost);
             }
         }
 
-        // 최대값 찾아서 출력
-        int answer = 0;
-        for (int i = 1; i <= N; i++) {
-            answer = Math.max(answer, dp[i]);
-        }
-        System.out.println(answer);
+        System.out.println(Math.max(dp[N], dp[N - 1]));
     }
+
 }
