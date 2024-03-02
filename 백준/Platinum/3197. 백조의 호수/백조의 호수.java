@@ -1,216 +1,141 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayDeque;
-import java.util.Queue;
-import java.util.StringTokenizer;
+/*
+ * 문제
+ * 1. 빙하와 일반땅이 존재
+ * 2. 빙하가 일반땅과 접촉하면 빙하가 녹음(가로 세로)
+ * 3. 사람은 일반땅에서만 이동 가능(가로 세로)
+ * 4. 사람이 만날 수 있게 되는데 얼마나 걸리는가
+ * 
+ * 풀이
+ * 1. R,C입력 -> 가로 세로(1500)
+ * 2. arr[R][C]생성
+ * 3. arr채우기 -> L위치 기록(1명만)
+ * 4. while돌리기 
+ *  4.0. L부터 .을 통해서 bfs탐색 후 다른 L에 도착시  -> count출력 후 종료
+ *     4.1. count++
+ *     4.2. 판을 전부 탐색
+ *     4.3. X인 구역을 4방 탐색하여 주변에 .또는 L이 있으면 check
+ *     4.4. check인 구역 녹이기
+ * 
+ * bfs
+ * 1. L위치 que에 담기
+ * 2. visited체크
+ * 3. while -> 큐 빌때 까지
+ *     3.1. poll
+ *     3.2. 4방 탐색 -> visited후 que에 넣기
+ * 
+ * 시간 복잡도
+ * 1. (1500 * 1500 * 4 + 1500 * 1500) * 1500 => 270억?
+ * 2. 판이 전부 빙하로 차는 것은 아님 + 모든 빙하를 4방 탐색하지는 않음 + bfs도 항상 모든 판을 탐색하지 않음 => 충분할 듯
+ * 
+ * 시간초과 발생하는 듯
+ * 다른 풀이
+ * 1. 녹을 빙하를 미리 큐에 담아 놓기?
+ * 2. 다음 빙하는 녹은 빙하와 닿아있는 빙하
+ */
+import java.io.*;
+import java.util.*;
 
 public class Main {
-	// 일반 땅과 사람 두 명을 각각 큐에 담는다
-	// 3경우에 모두 (별도의) visited 배열을 만든다
-	// 먼저 빙하를 녹이고 각 사람을 움직이게 한다
-	// 사람이 움직이며 다른 사람의 visited에 도달한 경우 만난 것으로 간주한다
-
-	static class Position {
-		int x, y;
-
-		public Position(int x, int y) {
-			this.x = x;
-			this.y = y;
-		}
-	}
-
-	static Queue<Position> grounds = new ArrayDeque<>();
-	static Queue<Position> personA = new ArrayDeque<>();
-	static Queue<Position> personB = new ArrayDeque<>();
-
-	static boolean[][] groundVisited;
-	static boolean[][] personAVisited;
-	static boolean[][] personBVisited;
-
-	static char[][] board;
-
-	static int R;
-	static int C;
-	
-	static boolean finished = false; // 만남 여부
-
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws Exception {
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-
 		StringTokenizer st = new StringTokenizer(br.readLine());
-		R = Integer.parseInt(st.nextToken());
-		C = Integer.parseInt(st.nextToken());
-
-		// 배열 초기화
-		groundVisited = new boolean[R][C];
-		personAVisited = new boolean[R][C];
-		personBVisited = new boolean[R][C];
-
-		board = new char[R][C];
-
-		// 보드 입력
+		int R = Integer.parseInt(st.nextToken());
+		int C = Integer.parseInt(st.nextToken());
+		char[][] arr = new char[R][C];
+		int lR = 0;
+		int lC = 0;
 		for (int i = 0; i < R; i++) {
-			String line = br.readLine();
+			String temp = br.readLine();
 			for (int j = 0; j < C; j++) {
-				board[i][j] = line.charAt(j);
-				if (board[i][j] == '.' || board[i][j] == 'L') {
-					// 일반 땅
-					groundVisited[i][j] = true;
-					grounds.offer(new Position(i, j));
+				char letter = temp.charAt(j);
+				if (letter == 'L') {
+					lR = i;
+					lC = j;
 				}
-				if (board[i][j] == 'L') {
-					// 사람
-					if (personA.isEmpty()) {
-						// A
-						personAVisited[i][j] = true;
-						personA.offer(new Position(i, j));
-					} else {
-						// B
-						personBVisited[i][j] = true;
-						personB.offer(new Position(i, j));
+				arr[i][j] = letter;
+			}
+		}
+		boolean[][] iceVisited = new boolean[R][C];
+		int[][] dir = { { 0, 1 }, { 0, -1 }, { 1, 0 }, { -1, 0 } };
+		Deque<int[]> iced = new ArrayDeque<>();
+		for (int i = 0; i < R; i++) {
+			A: for (int j = 0; j < C; j++) {
+				if (arr[i][j] == 'X') {
+					for (int k = 0; k < 4; k++) {
+						int nr = i + dir[k][0];
+						int nc = j + dir[k][1];
+						if (nr < 0 || nc < 0 || nr >= R || nc >= C)
+							continue;
+						if (arr[nr][nc] == '.' || arr[nr][nc] == 'L') {
+							iced.add(new int[] { i, j });
+							iceVisited[i][j] = true;
+							continue A;
+						}
 					}
 				}
 			}
 		}
-		br.close();
 
-		// 풀이 시작
-		// 빙하는 하루에 한 라운드씩 녹지만,
-		// 사람은 이동할 수 있는 최대로 이동
-		int step = 0;
+		int count = 0;
+		Deque<int[]> que = new ArrayDeque<>();
+		que.add(new int[] { lR, lC }); // 최초 1회만
+		boolean[][] visited = new boolean[R][C];
+		visited[lR][lC] = true;
 		while (true) {
-			step++;
-			// 먼저 빙하 녹이기
-			melting();
+			count++;
+			// 얼음 먼저 녹이기
+			Deque<int[]> ice = new ArrayDeque<>();
+			while (!iced.isEmpty()) {
+				int[] loc = iced.poll();
+				int r = loc[0];
+				int c = loc[1];
+				arr[r][c] = '.';
+				for (int k = 0; k < 4; k++) {
+					int nr = r + dir[k][0];
+					int nc = c + dir[k][1];
+					if (nr < 0 || nc < 0 || nr >= R || nc >= C)
+						continue;
+					if (iceVisited[nr][nc])
+						continue;
+					if (arr[nr][nc] == 'X') {
+						iceVisited[nr][nc] = true;
+						ice.add(new int[] { nr, nc });
+					}
+				}
+			}
+			iced = ice;
 			
-			// A 이동
-			moveA();
-			if (finished) {
-				break;
+			// 사람 이동시키기
+			boolean[][] nextSelected = new boolean[R][C];
+			Deque<int[]> que2 = new ArrayDeque<>();
+			while (!que.isEmpty()) {
+				int[] loc = que.poll();
+				int r = loc[0];
+				int c = loc[1];
+				for (int k = 0; k < 4; k++) {
+					int nr = r + dir[k][0];
+					int nc = c + dir[k][1];
+					if (nr < 0 || nc < 0 || nr >= R || nc >= C)
+						continue;
+					if (visited[nr][nc])
+						continue;
+					if (arr[nr][nc] == 'X' && !nextSelected[nr][nc]) {
+						// 얼음과 만나면 다음 탐색을 위해 que2에 넣어줌
+						nextSelected[nr][nc] = true;
+						que2.offer(new int[] { nr, nc });
+					}
+					if (arr[nr][nc] == '.') {
+						visited[nr][nc] = true;
+						// 현재 탐색 큐
+						que.add(new int[] { nr, nc });
+					}
+					if (arr[nr][nc] == 'L') {
+						System.out.println(count);
+						return;
+					}
+				}
 			}
-			
-			// B 이동
-			moveB();
-			if (finished) {
-				break;
-			}
+			que = que2;
 		}
-		
-		System.out.println(step);
-	}
-
-	static int[] dx = { 1, -1, 0, 0 };
-	static int[] dy = { 0, 0, 1, -1 };
-
-	static void melting() {
-		int size = grounds.size();
-
-		// 한 뎁스씩 돌기
-		while (size-- > 0) {
-			Position current = grounds.poll();
-
-			for (int d = 0; d < 4; d++) {
-				int nX = current.x + dx[d];
-				int nY = current.y + dy[d];
-
-				if (nX < 0 || nX >= R || nY < 0 || nY >= C || groundVisited[nX][nY]) {
-					continue;
-				}
-
-				if (board[nX][nY] == 'X') {
-					// 빙하면 녹이기
-					board[nX][nY] = '.';
-					groundVisited[nX][nY] = true;
-					grounds.offer(new Position(nX, nY));
-				}
-			}
-		}
-	}
-
-	static void moveA() {
-		Queue<Position> newPersonA = new ArrayDeque<>();
-		boolean[][] checked = new boolean[R][C];
-		
-		while (!personA.isEmpty()) {
-			Position current = personA.poll();
-
-			for (int d = 0; d < 4; d++) {
-				int nX = current.x + dx[d];
-				int nY = current.y + dy[d];
-
-				if (nX < 0 || nX >= R || nY < 0 || nY >= C) {
-					continue;
-				}
-
-				if (personBVisited[nX][nY]) {
-					// A가 B를 만나면
-					finished = true;
-					return;
-				}
-				
-				if (personAVisited[nX][nY]) {
-					// 중복
-					continue;
-				}
-				
-				if (board[nX][nY] == 'X' && !checked[current.x][current.y]) {
-					// 빙하로 막혔다면 새로운 큐에 '한번만' 넣어줌
-					checked[current.x][current.y] = true;
-					newPersonA.offer(new Position(current.x, current.y));
-				}
-
-				if (board[nX][nY] == '.') {
-					// 일반땅이면 A 이동
-					personAVisited[nX][nY] = true;
-					personA.offer(new Position(nX, nY));
-				}
-			}
-		}
-		
-		personA = newPersonA;
-	}
-	
-	static void moveB() {
-		Queue<Position> newPersonB = new ArrayDeque<>();
-		boolean[][] checked = new boolean[R][C];
-		
-		while (!personB.isEmpty()) {
-			Position current = personB.poll();
-
-			for (int d = 0; d < 4; d++) {
-				int nX = current.x + dx[d];
-				int nY = current.y + dy[d];
-
-				if (nX < 0 || nX >= R || nY < 0 || nY >= C) {
-					continue;
-				}
-
-				if (personAVisited[nX][nY]) {
-					// B가 A를 만나면
-					finished = true;
-					return;
-				}
-				
-				if (personBVisited[nX][nY]) {
-					// 중복
-					continue;
-				}
-				
-				if (board[nX][nY] == 'X' && !checked[current.x][current.y]) {
-					// 빙하로 막혔다면 새로운 큐에 '한번만' 넣어줌
-					checked[current.x][current.y] = true;
-					newPersonB.offer(new Position(current.x, current.y));
-				}
-
-				if (board[nX][nY] == '.') {
-					// 일반땅이면 B 이동
-					personBVisited[nX][nY] = true;
-					personB.offer(new Position(nX, nY));
-				}
-			}
-		}
-		
-		personB = newPersonB;
 	}
 }
