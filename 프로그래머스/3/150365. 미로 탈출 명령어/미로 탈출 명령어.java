@@ -37,7 +37,6 @@ class Solution {
         
         int curK = 0;
         while(curK < k && !queue.isEmpty()) {
-            Position[][] opMap = new Position[n][m]; // 작업용 map
             int size = queue.size();
             curK++;
             
@@ -53,46 +52,22 @@ class Solution {
                     }
                     
                     Position next = new Position(nX, nY, current.route + routes[d]);
-                    if (opMap[nX][nY] == null) {
-                        opMap[nX][nY] = next;
+                    if (map[nX][nY] == null || map[nX][nY].route.length() < current.route.length()) {
+                        map[nX][nY] = next;
                         queue.offer(next);
                     } else {
                         // 이미 존재한다면 merge (더 route가 작은 것만 남기기)
                         // 큐에 이미 해당 객체가 offer 되어 있으므로 넣어줄 필요 X
-                        opMap[nX][nY].merge(next);   
+                        map[nX][nY].merge(next);   
                     }
                 }
             }
-            map = opMap;
-            // // 맵 찍기
-            // for(int i = 0 ; i < n ; i++) {
-            //     for(int j = 0 ; j < m ; j++) {
-            //         if (map[i][j] == null) {
-            //             System.out.print("null ");
-            //         } else {
-            //             System.out.print(map[i][j].route + " ");   
-            //         }
-            //     }
-            //     System.out.println();
-            // }
-            // System.out.println();
         }
         
-        if (map[r - 1][c - 1] == null) {
+        if (map[r - 1][c - 1] == null || map[r - 1][c - 1].route.length() < k) {
             return "impossible";
         } else {
             return map[r - 1][c - 1].route;
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
