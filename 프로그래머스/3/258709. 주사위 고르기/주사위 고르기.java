@@ -76,9 +76,6 @@ class Solution {
                     continue;
                 }
                 
-                if (a == target) {
-                    // target -= 1;
-                }
                 lowerCount += target;
             }
             
