@@ -13,11 +13,11 @@ class Solution {
             this.value = value;
         }
         
-        void giveParentMoney(int amount) {
+        void giveToParent(int amount) {
             int cut = amount / 10;
             if (cut > 0 && parent != null) {
                 // 부모로 전달
-                this.parent.giveParentMoney(cut);
+                this.parent.giveToParent(cut);
             }
             
             this.value += amount - cut;
@@ -48,7 +48,7 @@ class Solution {
         
         // 계산
         for(int i = 0 ; i < amount.length ; i++) {
-            sellers.get(seller[i]).giveParentMoney(amount[i] * 100);
+            sellers.get(seller[i]).giveToParent(amount[i] * 100);
         }
         
         // 정답 출력
