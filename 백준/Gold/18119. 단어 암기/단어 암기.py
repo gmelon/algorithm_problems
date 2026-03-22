@@ -2,53 +2,51 @@ import sys
 
 input = sys.stdin.readline
 
-N, M = map(int, input().split())
+n, m = map(int, input().strip().split())
+alpha_y = [[] for _ in range(26)]
 
-words = [input().strip() for _ in range(N)]
-queries = [input().split() for _ in range(M)]
+for i in range(n):
+    word = input().strip()
+    alpha = [False] * 26 
+    for c in word:
+        alpha[ord(c) - ord("a")] = True
 
+    for j in range(26):
+        if alpha[j]:
+            alpha_y[j].append(i)
 
-# queries[0] == 1 -> 잊는다 # 바본가
-# queries[0] == 2 -> 기억한다
+result = [0 for i in range(n)]
+forget = [False] * 26
+ans = n
 
-def bit_masking(base_bit, alphabet, target_value):
-    target_position = ord(alphabet) - ord('a')
-    if target_value == 0:
-        base_bit &= ~(1 << target_position)
-        return base_bit
-    if target_value == 1:
-        base_bit |= (1 << target_position)
-        return base_bit
+for _ in range(m):
+    query, x = input().strip().split()
 
+    if query == "1":
+        if forget[ord(x) - ord("a")]:
+            continue
 
-def count(words_bit, current_brain):
-    count = 0
+        forget[ord(x) - ord("a")] = True
 
-    for word_bit in words_bit:
-        if word_bit & current_brain == word_bit:
-            count += 1
+        for i in alpha_y[ord(x) - ord("a")]:
+            if result[i] == 0:
+                ans -= 1
 
-    return count
+            result[i] -= 1
+    
+    if query == "2":
+        if not forget[ord(x) - ord("a")]:
+            continue
 
+        forget[ord(x) - ord("a")] = False
 
-# words bit 만들기
-words_bit = []
-for word in words:
-    current_word_bit = 0b0
-    for a in word:
-        current_word_bit = bit_masking(current_word_bit, a, 1)
-    words_bit.append(current_word_bit)
+        for i in alpha_y[ord(x) - ord("a")]:
+            result[i] += 1
 
+            if result[i] == 0:
+                ans += 1
 
-# 처음엔 모든 알파벳을 알고 있는 상태
-current_brain = (1 << 26) - 1
-
-for query in queries:
-    if query[0] == '1':
-        current_brain = bit_masking(current_brain, query[1], 0)
-    if query[0] == '2':
-        current_brain = bit_masking(current_brain, query[1], 1)
-
-    print(count(words_bit, current_brain))
-
+    # print(result)
+    print(ans)
+    # print()
 
